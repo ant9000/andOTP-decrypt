@@ -1,4 +1,5 @@
-docopt
-pycrypto
-pyotp
-qrcode
+docopt==0.6.2
+Pillow==7.0.0
+pycryptodome==3.9.4
+pyotp==2.3.0
+PyQRCode==1.2.1

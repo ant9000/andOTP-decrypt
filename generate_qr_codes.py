@@ -2,9 +2,10 @@
 """generate_qr_codes.py
 
 Usage:
-  generate_qr_codes.py ANDOTP_AES_BACKUP_FILE
+  generate_qr_codes.py [-o|--old] ANDOTP_AES_BACKUP_FILE
 
 Options:
+  -o --old      Use old encryption (andOTP <= 0.6.2)
   -h --help     Show this screen.
   --version     Show version.
 
@@ -17,10 +18,16 @@ import fileinput
 import json
 import andotp_decrypt
 
-if __name__ == '__main__':
+def main():
     arguments = docopt(__doc__, version='generate_qr_codes 0.1')
 
-    text = andotp_decrypt.decrypt_aes(arguments['ANDOTP_AES_BACKUP_FILE'])
+    password = andotp_decrypt.get_password()
+    text = None
+    if arguments['--old']:
+        text = andotp_decrypt.decrypt_aes(password, arguments['ANDOTP_AES_BACKUP_FILE'])
+    else:
+        text = andotp_decrypt.decrypt_aes_new_format(password, arguments['ANDOTP_AES_BACKUP_FILE'])
+
     if not text:
         print("Something went wrong while loading %s. Maybe the passphrase was wrong?" % arguments['ANDOTP_AES_BACKUP_FILE'])
         sys.exit(1)
@@ -39,6 +46,9 @@ if __name__ == '__main__':
             url = totp.provisioning_uri(label, issuer_name = issuer)
         if url:
             img = pyqrcode.create(url)
-            safe_filename = "".join([c for c in label if c.isalpha() or c.isdigit() or c in "@_-"]).strip() + ".svg"
-            img.svg(safe_filename, scale=4, background='#fff')
-            print("Code saved as: %s" % safe_filename)
+            save_filename = "".join([c for c in label if c.isalpha() or c.isdigit() or c in "@_-"]).strip() + ".svg"
+            img.svg(save_filename, scale=4, background='#fff')
+            print("Code saved as: %s" % save_filename)
+
+if __name__ == '__main__':
+    main()
